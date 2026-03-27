@@ -3,11 +3,13 @@ import { Spinner } from '../components/Spinner'
 import { Alert } from '../components/Alert'
 import { StatCard } from '../components/StatCard'
 import { FundCard } from '../components/FundCard'
+import { useAuth } from '../context/AuthContext'
 
 const fmt = (n: number) =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n)
 
 export default function FundsPage() {
+  const { clientId } = useAuth()
   const { funds, client, isLoading, error, successMsg, setError, setSuccessMsg, subscribe, cancel } = useFunds()
 
   if (isLoading) return <Spinner label="Cargando fondos..." />
@@ -35,8 +37,8 @@ export default function FundsPage() {
           <FundCard
             key={fund.id}
             fund={fund}
-            onSubscribe={(id) => { setError(null); subscribe.mutate(id) }}
-            onCancel={(id) => cancel.mutate(id)}
+            onSubscribe={(id) => { setError(null); subscribe.mutate({ id, clientId: clientId! }) }}
+            onCancel={(id) => cancel.mutate({ id, clientId: clientId! })}
             isPending={subscribe.isPending || cancel.isPending}
           />
         ))}

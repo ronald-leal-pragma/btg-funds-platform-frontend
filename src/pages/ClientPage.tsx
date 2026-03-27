@@ -15,20 +15,23 @@ export default function ClientPage() {
       <EmptyState
         icon="⚠️"
         title="No se pudo cargar el cliente"
-        subtitle="Verifica que el backend esté corriendo en el puerto 8080."
+        subtitle={(error as any)?.message ?? 'Verifica que el backend esté corriendo en el puerto 8081.'}
       />
     )
   }
 
-  const balancePct = Math.min(100, ((client?.balance ?? 0) / 500000) * 100)
+  if (!client) return null
+
+  const balancePct = Math.min(100, (client.balance / 500000) * 100)
 
   const infoRows = [
-    { label: 'ID de cliente',              value: client?.id,                                                         icon: '🪪' },
-    { label: 'Preferencia de notificación', value: client?.notificationPreference === 'email' ? '📧 Email' : '📱 SMS', icon: '🔔' },
-    { label: 'Contacto',                   value: client?.contactInfo,                                                icon: '📬' },
+    { label: 'ID de cliente',              value: client.id,                                                         icon: '🪪' },
+    { label: 'Correo',                     value: client.email,                                                      icon: '✉️' },
+    { label: 'Preferencia de notificación', value: client.notificationPreference === 'email' ? '📧 Email' : '📱 SMS', icon: '🔔' },
+    { label: 'Contacto',                   value: client.contactInfo,                                                icon: '📬' },
     {
       label: 'Fondos activos',
-      value: (client?.activeFundIds?.length ?? 0) > 0 ? client?.activeFundIds?.join(', ') : 'Sin fondos activos',
+      value: (client.activeFundIds?.length ?? 0) > 0 ? client.activeFundIds.join(', ') : 'Sin fondos activos',
       icon: '📊',
     },
   ]
@@ -47,17 +50,17 @@ export default function ClientPage() {
           </div>
           <div>
             <p className="text-white/70 text-xs uppercase tracking-wide">Cliente BTG Pactual</p>
-            <p className="font-bold text-lg">ID #{client?.id}</p>
+            <p className="font-bold text-lg">{client.email}</p>
           </div>
         </div>
 
         <div>
           <p className="text-white/70 text-xs uppercase tracking-wide mb-1">Saldo disponible</p>
-          <p className="text-3xl font-bold">{fmt(client?.balance ?? 0)}</p>
+          <p className="text-3xl font-bold">{fmt(client.balance)}</p>
           <div className="mt-3">
             <div className="flex justify-between text-xs text-white/60 mb-1">
               <span>Utilizado</span>
-              <span>{fmt(500000 - (client?.balance ?? 0))} / {fmt(500000)}</span>
+              <span>{fmt(500000 - client.balance)} / {fmt(500000)}</span>
             </div>
             <div className="h-2 bg-white/20 rounded-full overflow-hidden">
               <div

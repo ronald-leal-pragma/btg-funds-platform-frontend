@@ -1,7 +1,9 @@
 import FundsPage from './pages/FundsPage'
 import TransactionsPage from './pages/TransactionsPage'
 import ClientPage from './pages/ClientPage'
+import LoginPage from './pages/LoginPage'
 import { useState } from 'react'
+import { useAuth } from './context/AuthContext'
 
 type Page = 'funds' | 'transactions' | 'client'
 
@@ -12,7 +14,12 @@ const NAV_ITEMS: { id: Page; label: string; icon: string }[] = [
 ]
 
 export default function App() {
+  const { clientId, logout } = useAuth()
   const [page, setPage] = useState<Page>('funds')
+
+  if (!clientId) {
+    return <LoginPage />
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -47,6 +54,16 @@ export default function App() {
                   <span className="hidden sm:inline">{item.label}</span>
                 </button>
               ))}
+
+              {/* Cerrar sesión */}
+              <button
+                onClick={logout}
+                title="Cerrar sesión"
+                className="ml-2 flex items-center gap-1 px-3 py-2 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/10 transition-all duration-150"
+              >
+                <span className="text-base">🚪</span>
+                <span className="hidden sm:inline">Salir</span>
+              </button>
             </nav>
           </div>
         </div>

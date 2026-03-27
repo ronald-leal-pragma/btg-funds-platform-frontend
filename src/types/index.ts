@@ -21,4 +21,17 @@ export interface Client {
   notificationPreference: 'email' | 'sms'
   contactInfo: string
   activeFundIds: string[]
+  email: string
+}
+
+export interface CreateClientRequest {
+  email: string
+  password: string
+  notificationPreference: 'email' | 'sms'
+  contactInfo: string
+}
+
+export interface LoginRequest {
+  email: string
+  password: string
 }

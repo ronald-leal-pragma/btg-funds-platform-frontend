@@ -8,9 +8,15 @@ const fmt = (n: number) =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n)
 
 export default function TransactionsPage() {
-  const { data: transactions, isLoading } = useTransactions()
+  const { data: transactions, isLoading, error } = useTransactions()
 
   if (isLoading) return <Spinner label="Cargando transacciones..." />
+
+  if (error) {
+    return (
+      <EmptyState icon="⚠️" title="Error cargando transacciones" subtitle={(error as any)?.message ?? 'Verifica el backend.'} />
+    )
+  }
 
   const totalAperturas = transactions?.filter(t => t.type === 'APERTURA').reduce((s, t) => s + t.amount, 0) ?? 0
   const totalCancelaciones = transactions?.filter(t => t.type === 'CANCELACION').reduce((s, t) => s + t.amount, 0) ?? 0
