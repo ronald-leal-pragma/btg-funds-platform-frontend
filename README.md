@@ -1,55 +1,120 @@
-# BTG Funds Platform Frontend
+# BTG Funds Platform — Frontend
 
-Quick start (desarrollo local):
+Plataforma de gestión de fondos de inversión (FPV/FIC) de BTG Pactual. Permite a un cliente suscribirse a fondos, cancelar suscripciones, consultar su balance y revisar el historial de transacciones.
 
-1. Copiar variables de ejemplo:
+## Stack
+
+| Tecnología | Uso |
+|---|---|
+| React 18 + TypeScript | UI |
+| Vite | Bundler y dev server |
+| TailwindCSS | Estilos |
+| TanStack Query (React Query v5) | Estado del servidor y caché |
+| Axios | Cliente HTTP |
+| Vitest + Testing Library | Tests unitarios |
+| Playwright | Tests E2E |
+
+## Estructura del proyecto
+
+```
+src/
+├── components/       # UI reutilizable (FundCard, TransactionRow, Badge, etc.)
+├── context/          # AuthContext (contexto de autenticación)
+├── hooks/            # Hooks de datos (useFunds, useClient, useTransactions)
+├── pages/            # Vistas (FundsPage, TransactionsPage, ClientPage, LoginPage)
+├── services/         # Cliente Axios y llamadas a la API (api.ts)
+├── types/            # Tipos TypeScript compartidos (index.ts)
+└── test/             # Setup de Vitest (setup.ts)
+tests/
+├── e2e.spec.ts       # Test E2E: suscripción, cancelación y transacciones
+└── diag.spec.ts      # Test de diagnóstico de conectividad
+```
+
+## Inicio rápido
+
+### 1. Variables de entorno
 
 ```bash
 cp .env.example .env
 ```
 
-2. Instalar dependencias y levantar la app:
+El archivo `.env.example` trae `VITE_API_BASE=/api/v1` para aprovechar el proxy de Vite (recomendado). Si prefieres apuntar directo al backend:
+
+```env
+VITE_API_BASE=http://localhost:8081/api/v1
+```
+
+> En ese caso habilita CORS en el backend para `http://localhost:5173`.
+
+### 2. Instalar y levantar
 
 ```bash
 npm install
 npm run dev
 ```
 
-Notas de configuración:
-- El frontend usa por defecto `VITE_API_BASE=/api/v1` para aprovechar el proxy configurado en [vite.config.ts](vite.config.ts).
-- Si prefieres apuntar directamente al backend (sin proxy), establece en `.env` la URL completa, por ejemplo `VITE_API_BASE=http://localhost:8081/api/v1`. En ese caso asegúrate de habilitar CORS en el backend.
+La app estará disponible en `http://localhost:5173` (Vite elegirá otro puerto si está ocupado).
 
-Verificaciones rápidas:
-- Frontend (Vite) se sirve en `http://localhost:5173` por defecto; si el puerto está ocupado Vite elegirá otro (por ejemplo `5174`).
-- Revisa la pestaña Network en el navegador para confirmar llamadas a `/api/v1/*`.
+## Scripts disponibles
 
-E2E (Playwright):
-- Instalación de navegadores (solo la primera vez):
+| Comando | Descripción |
+|---|---|
+| `npm run dev` | Servidor de desarrollo con HMR |
+| `npm run build` | Build de producción (`tsc && vite build`) |
+| `npm run preview` | Vista previa del build de producción |
+| `npm test` | Tests unitarios con Vitest |
+| `npm run lint` | Linter ESLint con reglas TypeScript |
+
+## Tests unitarios
+
+```bash
+npm test
+```
+
+Usa Vitest + Testing Library con JSDOM. El setup global está en [src/test/setup.ts](src/test/setup.ts).
+
+## Tests E2E (Playwright)
+
+Instalar navegadores (solo la primera vez):
 
 ```bash
 npx playwright install --with-deps
 ```
 
-- Ejecutar el test E2E agregado (`tests/e2e.spec.ts`):
+Ejecutar tests E2E:
 
 ```bash
 npx playwright test tests/e2e.spec.ts
 ```
 
-Si quieres ejecutar todos los tests de Playwright añade este script a `package.json` y úsalo:
+> Los tests E2E requieren que tanto el backend (`:8081`) como el frontend (`:5173`) estén corriendo.
+
+Para agregar el script al `package.json`:
 
 ```json
 "scripts": {
-	"test:e2e": "playwright test"
+  "test:e2e": "playwright test"
 }
 ```
 
-Archivos relevantes:
-- `src/services/api.ts` — cliente Axios y `VITE_API_BASE`.
-- `vite.config.ts` — proxy dev hacia el backend.
-- `tests/e2e.spec.ts` — prueba E2E que simula suscripción/cancelación y verifica transacciones.
+## API
 
-Problemas comunes:
-- Si la UI muestra un error CORS al hacer peticiones a `http://localhost:8081`, vuelve a `VITE_API_BASE=/api/v1` para usar el proxy local, o configura CORS en el backend.
+El cliente HTTP está centralizado en [src/services/api.ts](src/services/api.ts). Todos los hooks consumen los siguientes endpoints:
 
-Si quieres, puedo añadir el script `test:e2e` al `package.json` y una sección con pasos para integración en CI.
+| Método | Endpoint | Descripción |
+|---|---|---|
+| `GET` | `/api/v1/funds` | Lista fondos con estado de suscripción |
+| `POST` | `/api/v1/funds/{id}/subscribe` | Suscribirse a un fondo |
+| `DELETE` | `/api/v1/funds/{id}/cancel` | Cancelar suscripción |
+| `GET` | `/api/v1/transactions` | Historial de transacciones |
+| `GET` | `/api/v1/client` | Balance y datos del cliente |
+
+## Proxy de desarrollo
+
+El proxy está configurado en [vite.config.ts](vite.config.ts) y redirige `/api/v1/*` al backend en `http://localhost:8081`. Esto evita problemas de CORS durante el desarrollo.
+
+## Problemas comunes
+
+- **Error CORS**: Asegúrate de usar `VITE_API_BASE=/api/v1` para que las peticiones pasen por el proxy de Vite, o configura CORS en el backend para tu origen.
+- **Puerto ocupado**: Vite cambiará automáticamente al siguiente puerto disponible (ej. `5174`). Actualiza la URL base en Playwright si usas E2E.
+- **Backend no disponible**: Verifica que el backend esté corriendo en el puerto `8081` antes de ejecutar los tests E2E.
